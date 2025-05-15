@@ -13,6 +13,3 @@ if exist node_modules\@angular-devkit\build-angular (
 
 echo [INFO] Iniciando servidor Angular com 'npm run start'...
 call npm run start
-
-echo [INFO] Script finalizado.
-pause
