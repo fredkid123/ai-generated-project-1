@@ -25,7 +25,7 @@ export class UploadComponent {
       formData.append('files', file);
     }
     this.http.post(`/upload/${group}`, formData).subscribe(() => {
-      alert(`${group} enviado com sucesso`);
+      console.log(`${group} enviado com sucesso`);
     });
   }
 }
