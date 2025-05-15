@@ -1,32 +1,38 @@
 using Microsoft.AspNetCore.Mvc;
 
-[ApiController]
-[Route("upload")]
-public class UploadController : ControllerBase
+namespace ImageOverlapApp.Controllers
 {
-	private readonly IWebHostEnvironment _env;
-
-	public UploadController(IWebHostEnvironment env)
+	[ApiController]
+	public class UploadController : ControllerBase
 	{
-		_env = env;
-	}
+		private readonly IWebHostEnvironment _env;
+		private readonly ILogger<UploadController> _logger;
 
-	[HttpPost("groupA")]
-	[HttpPost("groupB")]
-	public async Task<IActionResult> UploadImages([FromRoute] string group, [FromForm] IFormFileCollection files)
-	{
-		var targetFolder = Path.Combine(_env.WebRootPath ?? "wwwroot", group);
-		Directory.CreateDirectory(targetFolder);
-
-		foreach (var file in files)
+		public UploadController(IWebHostEnvironment env, ILogger<UploadController> logger)
 		{
-			var filePath = Path.Combine(targetFolder, file.FileName);
-			using (var stream = new FileStream(filePath, FileMode.Create))
-			{
-				await file.CopyToAsync(stream);
-			}
+			_env = env;
+			_logger = logger;
 		}
 
-		return Ok(new { uploaded = files.Count });
+		[HttpPost("upload/{group}")]
+		public IActionResult Upload(string group, [FromForm] IFormFile[] files)
+		{
+			if (files == null || files.Length == 0)
+				return BadRequest("Nenhum arquivo enviado.");
+
+			var uploadPath = Path.Combine(_env.WebRootPath ?? "wwwroot", group);
+			if (!Directory.Exists(uploadPath))
+				Directory.CreateDirectory(uploadPath);
+
+			foreach (var file in files)
+			{
+				var filePath = Path.Combine(uploadPath, file.FileName);
+				using var stream = new FileStream(filePath, FileMode.Create);
+				file.CopyTo(stream);
+				_logger.LogInformation("Arquivo salvo: {filePath}", filePath);
+			}
+
+			return Ok();
+		}
 	}
 }
