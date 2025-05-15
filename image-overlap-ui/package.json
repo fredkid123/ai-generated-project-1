@@ -2,7 +2,7 @@
 	"name": "image-overlap-ui",
 	"version": "1.0.0",
 	"scripts": {
-		"start": "ng serve --proxy-config proxy.conf.json",
+		"start": "ng serve",
 		"build": "ng build",
 		"test": "ng test"
 	},

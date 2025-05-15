@@ -13,4 +13,4 @@ import { CompareComponent } from './compare/compare.component';
 	providers: [],
 	bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {}
