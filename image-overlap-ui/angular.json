@@ -4,6 +4,7 @@
 	"projects": {
 		"image-overlap-ui": {
 			"projectType": "application",
+			"root": "",
 			"sourceRoot": "src",
 			"prefix": "app",
 			"architect": {
@@ -22,7 +23,8 @@
 				"serve": {
 					"builder": "@angular-devkit/build-angular:dev-server",
 					"options": {
-						"browserTarget": "image-overlap-ui:build"
+						"browserTarget": "image-overlap-ui:build",
+						"proxyConfig": "proxy.conf.json"
 					}
 				}
 			}
