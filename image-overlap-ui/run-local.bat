@@ -1,4 +1,7 @@
 @echo off
 cd /d %~dp0
-call npm install
+if not exist node_modules (
+	echo 🔁 Instalando dependências...
+	call npm install
+)
 call npm run start

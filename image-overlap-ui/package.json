@@ -1,35 +1,29 @@
 {
-	"$schema": "./node_modules/@angular/cli/lib/config/schema.json",
-	"version": 1,
-	"projects": {
-		"image-overlap-ui": {
-			"projectType": "application",
-			"root": "",
-			"sourceRoot": "src",
-			"prefix": "app",
-			"architect": {
-				"build": {
-					"builder": "@angular-devkit/build-angular:browser",
-					"options": {
-						"outputPath": "dist/image-overlap-ui",
-						"index": "src/index.html",
-						"main": "src/main.ts",
-						"polyfills": [],
-						"tsConfig": "tsconfig.app.json",
-						"assets": ["src/favicon.ico", "src/assets"],
-						"styles": [],
-						"scripts": []
-					}
-				},
-				"serve": {
-					"builder": "@angular-devkit/build-angular:dev-server",
-					"options": {
-						"browserTarget": "image-overlap-ui:build",
-						"proxyConfig": "proxy.conf.json"
-					}
-				}
-			}
-		}
+	"name": "image-overlap-ui",
+	"version": "1.0.0",
+	"scripts": {
+		"start": "ng serve --proxy-config proxy.conf.json",
+		"build": "ng build",
+		"test": "ng test"
 	},
-	"defaultProject": "image-overlap-ui"
+	"private": true,
+	"dependencies": {
+		"@angular/animations": "17.3.12",
+		"@angular/common": "17.3.12",
+		"@angular/compiler": "17.3.12",
+		"@angular/core": "17.3.12",
+		"@angular/forms": "17.3.12",
+		"@angular/platform-browser": "17.3.12",
+		"@angular/platform-browser-dynamic": "17.3.12",
+		"@angular/router": "17.3.12",
+		"rxjs": "^7.8.1",
+		"tslib": "^2.6.2",
+		"zone.js": "~0.14.0"
+	},
+	"devDependencies": {
+		"@angular-devkit/build-angular": "^17.3.12",
+		"@angular/cli": "^17.3.12",
+		"@angular/compiler-cli": "^17.3.12",
+		"typescript": "~5.2.2"
+	}
 }
