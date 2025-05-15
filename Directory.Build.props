@@ -1,0 +1,11 @@
+<Project>
+	<PropertyGroup>
+		<Serilog__MinimumLevel>Information</Serilog__MinimumLevel>
+		<Serilog__WriteTo__0__Name>Console</Serilog__WriteTo__0__Name>
+		<Serilog__WriteTo__1__Name>File</Serilog__WriteTo__1__Name>
+		<Serilog__WriteTo__1__Args__path>log/ImageOverlapApp/log-.txt</Serilog__WriteTo__1__Args__path>
+		<Serilog__WriteTo__1__Args__rollingInterval>Day</Serilog__WriteTo__1__Args__rollingInterval>
+		<Serilog__WriteTo__1__Args__rollOnFileSizeLimit>true</Serilog__WriteTo__1__Args__rollOnFileSizeLimit>
+		<Serilog__WriteTo__1__Args__fileSizeLimitBytes>10485760</Serilog__WriteTo__1__Args__fileSizeLimitBytes>
+	</PropertyGroup>
+</Project>
