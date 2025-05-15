@@ -10,11 +10,10 @@ export class UploadComponent {
 	filesA: File[] = [];
 	filesB: File[] = [];
 
-	constructor(private http: HttpClient) { }
+	constructor(private http: HttpClient) {}
 
 	onFileChange(event: any, group: string): void {
 		const files = Array.from(event.target.files) as File[];
-
 		if (group === 'groupA') {
 			this.filesA = files;
 		} else {
@@ -25,13 +24,11 @@ export class UploadComponent {
 	upload(group: string): void {
 		const formData = new FormData();
 		const files = group === 'groupA' ? this.filesA : this.filesB;
-
 		for (const file of files) {
 			formData.append('files', file);
 		}
-
-		this.http.post(`/upload/${group}`, formData).subscribe(result => {
-			alert(`${group} uploaded.`);
+		this.http.post(`/upload/${group}`, formData).subscribe(() => {
+			alert(`${group} uploaded`);
 		});
 	}
 }

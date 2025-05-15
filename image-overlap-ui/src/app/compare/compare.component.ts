@@ -9,7 +9,7 @@ import { HttpClient } from '@angular/common/http';
 export class CompareComponent {
 	results: any[] = [];
 
-	constructor(private http: HttpClient) { }
+	constructor(private http: HttpClient) {}
 
 	compare(): void {
 		this.http.post<any[]>('/compare', {}).subscribe(data => {
