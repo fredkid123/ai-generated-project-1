@@ -9,3 +9,6 @@ obj/
 *.DS_Store
 .env
 .env.*
+
+package-lock.json
+
