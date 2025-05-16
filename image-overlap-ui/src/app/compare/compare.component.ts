@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { InstanceService } from '../instance.service';
 
 @Component({
 	selector: 'app-compare',
@@ -8,22 +9,18 @@ import { HttpClient } from '@angular/common/http';
 })
 export class CompareComponent {
 	results: any[] = [];
-	instanceId: string = this.generateInstanceId();
 
-	constructor(private http: HttpClient) {}
+	constructor(private http: HttpClient, private instanceService: InstanceService) {}
 
 	compare(): void {
-		if (!this.instanceId) {
+		const instanceId = this.instanceService.getInstanceId();
+		if (!instanceId) {
 			alert('Instance ID ausente!');
 			return;
 		}
 
-		this.http.post<any[]>(`/compare/${this.instanceId}`, {}).subscribe(data => {
+		this.http.post<any[]>(`/compare/${instanceId}`, {}).subscribe(data => {
 			this.results = data;
 		});
-	}
-
-	private generateInstanceId(): string {
-		return Math.random().toString(36).substring(2, 10);
 	}
 }

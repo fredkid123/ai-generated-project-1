@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { InstanceService } from '../instance.service';
 
 @Component({
 	selector: 'app-upload',
@@ -9,9 +10,8 @@ import { HttpClient } from '@angular/common/http';
 export class UploadComponent {
 	filesA: File[] = [];
 	filesB: File[] = [];
-	instanceId: string = this.generateInstanceId();
 
-	constructor(private http: HttpClient) {}
+	constructor(private http: HttpClient, private instanceService: InstanceService) {}
 
 	onFileChange(event: any, group: string): void {
 		const files = Array.from(event.target.files) as File[];
@@ -23,7 +23,8 @@ export class UploadComponent {
 	}
 
 	upload(group: string): void {
-		if (!this.instanceId) {
+		const instanceId = this.instanceService.getInstanceId();
+		if (!instanceId) {
 			alert('Instance ID ausente!');
 			return;
 		}
@@ -34,12 +35,8 @@ export class UploadComponent {
 			formData.append('files', file);
 		}
 
-		this.http.post(`/upload/${group}/${this.instanceId}`, formData).subscribe(() => {
+		this.http.post(`/upload/${group}/${instanceId}`, formData).subscribe(() => {
 			alert(`${group} enviado com sucesso`);
 		});
-	}
-
-	private generateInstanceId(): string {
-		return Math.random().toString(36).substring(2, 10);
 	}
 }

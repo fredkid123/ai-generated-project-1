@@ -13,7 +13,7 @@ export class ErrorInterceptor implements HttpInterceptor {
 	intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
 		return next.handle(req).pipe(
 			catchError((error: HttpErrorResponse) => {
-				alert("Erro: " + (error.error?.message || error.message || "Erro desconhecido"));
+				alert('Erro HTTP: ' + (error.error?.message || error.message || 'Erro desconhecido'));
 				return throwError(() => error);
 			})
 		);
