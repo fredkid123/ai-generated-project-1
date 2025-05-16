@@ -11,6 +11,7 @@ export class UploadComponent {
 	filesA: File[] = [];
 	filesB: File[] = [];
 	message: string = '';
+	error: string = '';
 
 	@ViewChild('inputA') inputA!: ElementRef;
 	@ViewChild('inputB') inputB!: ElementRef;
@@ -19,6 +20,7 @@ export class UploadComponent {
 
 	onFileChange(event: any, group: string): void {
 		this.message = '';
+		this.error = '';
 		const files = Array.from(event.target.files) as File[];
 		if (group === 'groupA') {
 			this.filesA = files;
@@ -32,7 +34,7 @@ export class UploadComponent {
 		const files = group === 'groupA' ? this.filesA : this.filesB;
 
 		if (!files || files.length === 0) {
-			alert('Selecione ao menos um arquivo para enviar.');
+			this.error = 'Você deve selecionar ao menos um arquivo.';
 			return;
 		}
 
@@ -43,6 +45,7 @@ export class UploadComponent {
 
 		this.http.post(`/upload/${group}/${instanceId}`, formData).subscribe(() => {
 			this.message = `Grupo ${group === 'groupA' ? 'A' : 'B'} enviado com sucesso.`;
+			this.error = '';
 			if (group === 'groupA') {
 				this.filesA = [];
 				this.inputA.nativeElement.value = '';
