@@ -45,9 +45,8 @@ namespace ImageOverlapApp.Services
 			{
 				using var imgA = SixLabors.ImageSharp.Image.Load<Rgba32>(pathA);
 				using var imgB = SixLabors.ImageSharp.Image.Load<Rgba32>(pathB);
-
-				imgA.Mutate(x => x.Resize(100, 100).Grayscale());
-				imgB.Mutate(x => x.Resize(100, 100).Grayscale());
+				TreatImage(imgA, imgB);
+				TreatImage(imgB, imgA);
 
 				double diff = ComputeDifference(imgA, imgB);
 				Logger.LogDebug("Diferença entre {A} e {B} = {Diff}", Path.GetFileName(pathA), Path.GetFileName(pathB), diff);
@@ -58,6 +57,13 @@ namespace ImageOverlapApp.Services
 				Logger.LogError(ex, "Erro ao comparar {A} e {B}", pathA, pathB);
 				return false;
 			}
+		}
+
+		private static void TreatImage(SixLabors.ImageSharp.Image<Rgba32> imgA, SixLabors.ImageSharp.Image<Rgba32> imgB)
+		{
+			int targetWidth = Math.Max(imgA.Width, imgB.Width);
+			int targetHeight = Math.Max(imgA.Height, imgB.Height);
+			imgA.Mutate(x => x.Resize(targetWidth, targetWidth).Grayscale());
 		}
 
 		private static double ComputeDifference(SixLabors.ImageSharp.Image<Rgba32> a, SixLabors.ImageSharp.Image<Rgba32> b)
