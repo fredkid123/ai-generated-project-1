@@ -8,18 +8,22 @@ import { HttpClient } from '@angular/common/http';
 })
 export class CompareComponent {
 	results: any[] = [];
-	instanceId: string = '';
+	instanceId: string = this.generateInstanceId();
 
 	constructor(private http: HttpClient) {}
 
 	compare(): void {
 		if (!this.instanceId) {
-			alert('Informe o ID da instância de comparação.');
+			alert('Instance ID ausente!');
 			return;
 		}
 
 		this.http.post<any[]>(`/compare/${this.instanceId}`, {}).subscribe(data => {
 			this.results = data;
 		});
+	}
+
+	private generateInstanceId(): string {
+		return Math.random().toString(36).substring(2, 10);
 	}
 }

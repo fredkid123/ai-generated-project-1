@@ -23,11 +23,17 @@ export class UploadComponent {
 	}
 
 	upload(group: string): void {
+		if (!this.instanceId) {
+			alert('Instance ID ausente!');
+			return;
+		}
+
 		const formData = new FormData();
 		const files = group === 'groupA' ? this.filesA : this.filesB;
 		for (const file of files) {
 			formData.append('files', file);
 		}
+
 		this.http.post(`/upload/${group}/${this.instanceId}`, formData).subscribe(() => {
 			alert(`${group} enviado com sucesso`);
 		});
