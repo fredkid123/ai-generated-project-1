@@ -18,6 +18,7 @@ export class UploadComponent {
 	constructor(private http: HttpClient, private instanceService: InstanceService) {}
 
 	onFileChange(event: any, group: string): void {
+		this.message = '';
 		const files = Array.from(event.target.files) as File[];
 		if (group === 'groupA') {
 			this.filesA = files;
@@ -28,13 +29,14 @@ export class UploadComponent {
 
 	upload(group: string): void {
 		const instanceId = this.instanceService.getInstanceId();
-		if (!instanceId) {
-			alert('Instance ID ausente!');
+		const files = group === 'groupA' ? this.filesA : this.filesB;
+
+		if (!files || files.length === 0) {
+			alert('Selecione ao menos um arquivo para enviar.');
 			return;
 		}
 
 		const formData = new FormData();
-		const files = group === 'groupA' ? this.filesA : this.filesB;
 		for (const file of files) {
 			formData.append('files', file);
 		}
