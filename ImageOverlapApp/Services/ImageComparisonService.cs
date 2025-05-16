@@ -1,5 +1,12 @@
-using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Microsoft.Extensions.Logging;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace ImageOverlapApp.Services
 {
@@ -12,29 +19,64 @@ namespace ImageOverlapApp.Services
 			Logger = logger;
 		}
 
-		public IEnumerable<object> CompareGroups(string groupA, string groupB)
+		public IEnumerable<(string A, string B)> CompareImages(string groupADir, string groupBDir)
 		{
-			string groupADir = Path.Combine("wwwroot", groupA);
-			string groupBDir = Path.Combine("wwwroot", groupB);
+			var groupAFiles = Directory.GetFiles(groupADir);
+			var groupBFiles = Directory.GetFiles(groupBDir);
 
-			if (!Directory.Exists(groupADir) || !Directory.Exists(groupBDir))
+			var matches = new List<(string A, string B)>();
+
+			foreach (var fileA in groupAFiles)
 			{
-				Logger.LogWarning("Um dos diretórios de comparação não existe: {groupADir}, {groupBDir}", groupADir, groupBDir);
-				return Enumerable.Empty<object>();
+				foreach (var fileB in groupBFiles)
+				{
+					if (HasVisualOverlap(fileA, fileB))
+					{
+						matches.Add((Path.GetFileName(fileA), Path.GetFileName(fileB)));
+					}
+				}
 			}
 
-			Logger.LogInformation("Comparando arquivos entre {groupA} e {groupB}", groupADir, groupBDir);
+			Logger.LogInformation("Encontrados {count} pares semelhantes.", matches.Count);
+			return matches;
+		}
 
-			var groupAFiles = Directory.GetFiles(groupADir).Select(Path.GetFileName);
-			var groupBFiles = Directory.GetFiles(groupBDir).Select(Path.GetFileName);
-
-			return groupAFiles.SelectMany(a => groupBFiles, (a, b) => new
+		private bool HasVisualOverlap(string pathA, string pathB)
+		{
+			try
 			{
-				A = a,
-				B = b,
-				Overlap = Path.GetFileNameWithoutExtension(a).Substring(0, 3)
-						 == Path.GetFileNameWithoutExtension(b).Substring(0, 3)
-			});
+				using var imgA = Image.Load<Rgba32>(pathA);
+				using var imgB = Image.Load<Rgba32>(pathB);
+
+				imgA.Mutate(x => x.Resize(100, 100).Grayscale());
+				imgB.Mutate(x => x.Resize(100, 100).Grayscale());
+
+				double diff = ComputeDifference(imgA, imgB);
+				Logger.LogDebug("Diferença entre {A} e {B} = {Diff}", Path.GetFileName(pathA), Path.GetFileName(pathB), diff);
+				return diff < 0.2;
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex, "Erro ao comparar {A} e {B}", pathA, pathB);
+				return false;
+			}
+		}
+
+		private double ComputeDifference(Image<Rgba32> a, Image<Rgba32> b)
+		{
+			double total = 0;
+			for (int y = 0; y < a.Height; y++)
+			{
+				Span<Rgba32> rowA = a.GetPixelRowSpan(y);
+				Span<Rgba32> rowB = b.GetPixelRowSpan(y);
+				for (int x = 0; x < a.Width; x++)
+				{
+					var grayA = rowA[x].R / 255.0;
+					var grayB = rowB[x].R / 255.0;
+					total += Math.Pow(grayA - grayB, 2);
+				}
+			}
+			return total / (a.Width * a.Height);
 		}
 	}
 }
