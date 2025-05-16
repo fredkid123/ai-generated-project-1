@@ -4,6 +4,6 @@ namespace ImageOverlapApp.Services
 {
 	public interface IUploadService
 	{
-		void UploadFiles(string group, IFormFile[] files);
+		void UploadFiles(string group, string instanceId, IFormFile[] files);
 	}
 }

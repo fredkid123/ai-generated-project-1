@@ -16,9 +16,9 @@ namespace ImageOverlapApp.Services
 			Logger = logger;
 		}
 
-		public void UploadFiles(string group, IFormFile[] files)
+		public void UploadFiles(string group, string instanceId, IFormFile[] files)
 		{
-			string uploadPath = Path.Combine(Env.WebRootPath ?? "wwwroot", group);
+			string uploadPath = Path.Combine(Env.WebRootPath ?? "wwwroot", group, instanceId);
 
 			if (!Directory.Exists(uploadPath))
 			{
@@ -31,6 +31,29 @@ namespace ImageOverlapApp.Services
 				using var stream = new FileStream(filePath, FileMode.Create);
 				file.CopyTo(stream);
 				Logger.LogInformation("Arquivo salvo: {filePath}", filePath);
+			}
+
+			CleanupOldFolders(Path.Combine(Env.WebRootPath ?? "wwwroot", group));
+		}
+
+		private void CleanupOldFolders(string basePath)
+		{
+			var dirs = Directory.GetDirectories(basePath);
+			foreach (var dir in dirs)
+			{
+				var creation = Directory.GetCreationTimeUtc(dir);
+				if (creation < DateTime.UtcNow.AddHours(-2))
+				{
+					try
+					{
+						Directory.Delete(dir, true);
+						Logger.LogInformation("Diretório antigo removido: {dir}", dir);
+					}
+					catch (Exception ex)
+					{
+						Logger.LogWarning(ex, "Erro ao remover diretório antigo: {dir}", dir);
+					}
+				}
 			}
 		}
 	}

@@ -13,15 +13,15 @@ namespace ImageOverlapApp.Controllers
 			UploadService = uploadService;
 		}
 
-		[HttpPost("upload/{group}")]
-		public IActionResult Upload(string group, [FromForm] IFormFile[] files)
+		[HttpPost("upload/{group}/{instanceId}")]
+		public IActionResult Upload(string group, string instanceId, [FromForm] IFormFile[] files)
 		{
 			if (files == null || files.Length == 0)
 			{
 				return BadRequest("Nenhum arquivo enviado.");
 			}
 
-			UploadService.UploadFiles(group, files);
+			UploadService.UploadFiles(group, instanceId, files);
 			return Ok();
 		}
 	}

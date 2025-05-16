@@ -13,10 +13,10 @@ namespace ImageOverlapApp.Controllers
 			ComparisonService = comparisonService;
 		}
 
-		[HttpPost("compare")]
-		public IActionResult Compare()
+		[HttpPost("compare/{instanceId}")]
+		public IActionResult Compare(string instanceId)
 		{
-			var result = ComparisonService.CompareGroups("groupA", "groupB");
+			var result = ComparisonService.CompareGroups($"groupA/{instanceId}", $"groupB/{instanceId}");
 
 			if (result == null)
 			{
