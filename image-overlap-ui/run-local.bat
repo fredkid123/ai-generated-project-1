@@ -2,14 +2,17 @@
 cd /d %~dp0
 
 echo [INFO] Executando 'npm install' para garantir dependências...
-call npm install
-
-if exist node_modules\@angular-devkit\build-angular (
-	echo [INFO] Dependência build-angular já instalada.
-) else (
-	echo [INFO] Instalando dependência crítica: @angular-devkit/build-angular
-	call npm install @angular-devkit/build-angular@17.3.12 --save-dev
+npm install
+if %ERRORLEVEL% NEQ 0 (
+	echo [ERRO] Falha ao instalar dependências. Abortando.
+	pause
+	exit /b 1
 )
 
-echo [INFO] Iniciando servidor Angular com 'npm run start'...
-call npm run start
+REM Verifica se Angular Material está instalado
+IF NOT EXIST "node_modules\@angular\material" (
+	echo [INFO] Instalando Angular Material...
+	npm install @angular/material @angular/cdk @angular/animations
+)
+
+npm run start
