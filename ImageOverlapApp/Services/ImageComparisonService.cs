@@ -62,7 +62,7 @@ namespace ImageOverlapApp.Services
 			}
 		}
 
-		private double ComputeDifference(Image<Rgba32> a, Image<Rgba32> b)
+		private static double ComputeDifference(Image<Rgba32> a, Image<Rgba32> b)
 		{
 			double total = 0;
 			for (int y = 0; y < a.Height; y++)
