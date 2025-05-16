@@ -1,8 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+using ImageOverlapApp.Models;
 using Microsoft.Extensions.Logging;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
@@ -11,74 +10,100 @@ namespace ImageOverlapApp.Services
 	public class ImageComparisonService : IImageComparisonService
 	{
 		private ILogger<ImageComparisonService> Logger { get; set; }
+		private IConfiguration Config { get; set; }
+		private float Threshold { get; set; }
 
-		public ImageComparisonService(ILogger<ImageComparisonService> logger)
+		public ImageComparisonService(ILogger<ImageComparisonService> logger, IConfiguration config)
 		{
 			Logger = logger;
+			Config = config;
+			Threshold = config.GetValue<float>("SimilarityThreshold", 0.85f);
 		}
 
-		public IEnumerable<(string A, string B)> CompareImages(string groupADir, string groupBDir)
+		public IEnumerable<ComparisonResult> CompareImages(string pathA, string pathB)
 		{
-			var groupAFiles = Directory.GetFiles(groupADir);
-			var groupBFiles = Directory.GetFiles(groupBDir);
+			Logger.LogInformation("Comparando imagens usando SSIM com threshold {Threshold}", Threshold);
 
-			var matches = new List<(string A, string B)>();
+			var groupAFiles = Directory.GetFiles(pathA);
+			var groupBFiles = Directory.GetFiles(pathB);
 
-			foreach (var fileA in groupAFiles)
+			var results = new List<ComparisonResult>();
+
+			Parallel.ForEach(groupAFiles, fileA =>
 			{
+				using var imageA = Image.Load<Rgba32>(fileA);
 				foreach (var fileB in groupBFiles)
 				{
-					if (HasVisualOverlap(fileA, fileB))
+					using var imageB = Image.Load<Rgba32>(fileB);
+					float ssim = ComputeSSIM(imageA, imageB);
+					if (ssim >= Threshold)
 					{
-						matches.Add((Path.GetFileName(fileA), Path.GetFileName(fileB)));
+						lock (results)
+						{
+							results.Add(new ComparisonResult
+							{
+								A = Path.GetFileName(fileA),
+								B = Path.GetFileName(fileB),
+								Similarity = ssim
+							});
+						}
 					}
 				}
-			}
+			});
 
-			Logger.LogInformation("Encontrados {count} pares semelhantes.", matches.Count);
-			return matches;
+			Logger.LogInformation("{Count} correspondencias encontradas", results.Count);
+			return results;
 		}
 
-		private bool HasVisualOverlap(string pathA, string pathB)
+		private float ComputeSSIM(Image<Rgba32> imgA, Image<Rgba32> imgB)
 		{
-			try
-			{
-				using var imgA = SixLabors.ImageSharp.Image.Load<Rgba32>(pathA);
-				using var imgB = SixLabors.ImageSharp.Image.Load<Rgba32>(pathB);
-				TreatImage(imgA, imgB);
-				TreatImage(imgB, imgA);
+			int width = Math.Min(imgA.Width, imgB.Width);
+			int height = Math.Min(imgA.Height, imgB.Height);
 
-				double diff = ComputeDifference(imgA, imgB);
-				Logger.LogDebug("Diferença entre {A} e {B} = {Diff}", Path.GetFileName(pathA), Path.GetFileName(pathB), diff);
-				return diff < 0.2;
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex, "Erro ao comparar {A} e {B}", pathA, pathB);
-				return false;
-			}
-		}
+			imgA.Mutate(x => x.Resize(width, height).Grayscale());
+			imgB.Mutate(x => x.Resize(width, height).Grayscale());
 
-		private static void TreatImage(SixLabors.ImageSharp.Image<Rgba32> imgA, SixLabors.ImageSharp.Image<Rgba32> imgB)
-		{
-			int targetWidth = Math.Max(imgA.Width, imgB.Width);
-			int targetHeight = Math.Max(imgA.Height, imgB.Height);
-			imgA.Mutate(x => x.Resize(targetWidth, targetWidth).Grayscale());
-		}
+			float meanA = 0, meanB = 0, varA = 0, varB = 0, cov = 0;
+			int count = width * height;
 
-		private static double ComputeDifference(SixLabors.ImageSharp.Image<Rgba32> a, SixLabors.ImageSharp.Image<Rgba32> b)
-		{
-			double total = 0;
-			for (int y = 0; y < a.Height; y++)
+			for (int y = 0; y < height; y++)
 			{
-				for (int x = 0; x < a.Width; x++)
+				var rowA = imgA.GetPixelRowSpan(y);
+				var rowB = imgB.GetPixelRowSpan(y);
+				for (int x = 0; x < width; x++)
 				{
-					var grayA = a[x, y].R / 255.0;
-					var grayB = b[x, y].R / 255.0;
-					total += Math.Pow(grayA - grayB, 2);
+					float a = rowA[x].R / 255f;
+					float b = rowB[x].R / 255f;
+					meanA += a;
+					meanB += b;
 				}
 			}
-			return total / (a.Width * a.Height);
+
+			meanA /= count;
+			meanB /= count;
+
+			for (int y = 0; y < height; y++)
+			{
+				var rowA = imgA.GetPixelRowSpan(y);
+				var rowB = imgB.GetPixelRowSpan(y);
+				for (int x = 0; x < width; x++)
+				{
+					float a = rowA[x].R / 255f - meanA;
+					float b = rowB[x].R / 255f - meanB;
+					varA += a * a;
+					varB += b * b;
+					cov += a * b;
+				}
+			}
+
+			varA /= count;
+			varB /= count;
+			cov /= count;
+
+			const float c1 = 0.01f * 0.01f;
+			const float c2 = 0.03f * 0.03f;
+			return (2 * meanA * meanB + c1) * (2 * cov + c2) /
+				((meanA * meanA + meanB * meanB + c1) * (varA + varB + c2));
 		}
 	}
 }
