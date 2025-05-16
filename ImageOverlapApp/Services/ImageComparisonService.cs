@@ -60,17 +60,15 @@ namespace ImageOverlapApp.Services
 			}
 		}
 
-		private double ComputeDifference(SixLabors.ImageSharp.Image<Rgba32> a, SixLabors.ImageSharp.Image<Rgba32> b)
+		private static double ComputeDifference(SixLabors.ImageSharp.Image<Rgba32> a, SixLabors.ImageSharp.Image<Rgba32> b)
 		{
 			double total = 0;
 			for (int y = 0; y < a.Height; y++)
 			{
-				Span<Rgba32> rowA = a.GetPixelRowSpan(y);
-				Span<Rgba32> rowB = b.GetPixelRowSpan(y);
 				for (int x = 0; x < a.Width; x++)
 				{
-					var grayA = rowA[x].R / 255.0;
-					var grayB = rowB[x].R / 255.0;
+					var grayA = a[x, y].R / 255.0;
+					var grayB = b[x, y].R / 255.0;
 					total += Math.Pow(grayA - grayB, 2);
 				}
 			}
