@@ -1,36 +1,67 @@
-using System.IO;
-using Xunit;
-using Microsoft.Extensions.Logging;
-using Moq;
 using ImageOverlapApp.Services;
+using System;
+using System.IO;
+using System.Linq;
+using Xunit;
 
 namespace ImageOverlapApp.Tests
 {
 	public class ImageComparisonServiceTests
 	{
+		private readonly string testDataPath = Path.Combine(AppContext.BaseDirectory, "TestData");
+
 		[Fact]
-		public void CompareImages_ShouldReturnMatchingPairs_WhenOverlapDetected()
+		public void CompareImages_ShouldReturnMatch_WhenImagesAreSimilar()
 		{
-			// Arrange
-			var loggerMock = new Mock<ILogger<ImageComparisonService>>();
-			var service = new ImageComparisonService(loggerMock.Object);
+			var groupA = Path.Combine(AppContext.BaseDirectory, "tempA");
+			var groupB = Path.Combine(AppContext.BaseDirectory, "tempB");
 
-			// Copie duas imagens similares para essas pastas para testar
-			var groupADir = "TestData/groupA";
-			var groupBDir = "TestData/groupB";
+			PrepareTestImages(groupA, groupB, "imgA_0000.jpg", "imgB_0000.jpg");
 
-			Directory.CreateDirectory(groupADir);
-			Directory.CreateDirectory(groupBDir);
+			var service = new ImageComparisonService(new DummyLogger());
+			var result = service.CompareImages(groupA, groupB).ToList();
 
-			// Use a mesma imagem para garantir similaridade
-			File.Copy("TestData/imgA_0000.jpg", Path.Combine(groupADir, "a1.jpg"), overwrite: true);
-			File.Copy("TestData/imgB_0000.jpg", Path.Combine(groupBDir, "b1.jpg"), overwrite: true);
+			Assert.Single(result);
+			Assert.Equal("imgA_0000.jpg", result[0].A);
+			Assert.Equal("imgB_0000.jpg", result[0].B);
+		}
 
-			// Act
-			var matches = service.CompareImages(groupADir, groupBDir);
+		[Fact]
+		public void CompareImages_ShouldReturnEmpty_WhenImagesAreDifferent()
+		{
+			var groupA = Path.Combine(AppContext.BaseDirectory, "tempA2");
+			var groupB = Path.Combine(AppContext.BaseDirectory, "tempB2");
 
-			// Assert
-			Assert.Contains(matches, m => m.A == "a1.jpg" && m.B == "b1.jpg");
+			PrepareTestImages(groupA, groupB, "imgA_0000.jpg", "imgB_0001.jpg");
+
+			var service = new ImageComparisonService(new DummyLogger());
+			var result = service.CompareImages(groupA, groupB).ToList();
+
+			Assert.Empty(result);
+		}
+
+		private void PrepareTestImages(string groupA, string groupB, string fileA, string fileB)
+		{
+			if (Directory.Exists(groupA))
+			{
+				Directory.Delete(groupA, true);
+			}
+			if (Directory.Exists(groupB))
+			{
+				Directory.Delete(groupB, true);
+			}
+			Directory.CreateDirectory(groupA);
+			Directory.CreateDirectory(groupB);
+
+			File.Copy(Path.Combine(testDataPath, fileA), Path.Combine(groupA, fileA));
+			File.Copy(Path.Combine(testDataPath, fileB), Path.Combine(groupB, fileB));
+		}
+
+		private class DummyLogger : Microsoft.Extensions.Logging.ILogger<ImageOverlapApp.Services.ImageComparisonService>
+		{
+			public IDisposable BeginScope<TState>(TState state) => null;
+			public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel logLevel) => false;
+			public void Log<TState>(Microsoft.Extensions.Logging.LogLevel logLevel, Microsoft.Extensions.Logging.EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter) { }
 		}
 	}
 }
