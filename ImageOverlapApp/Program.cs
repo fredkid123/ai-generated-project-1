@@ -1,8 +1,8 @@
 using Serilog;
+using ImageOverlapApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configurar Serilog antes de qualquer outra coisa
 Log.Logger = new LoggerConfiguration()
 	.ReadFrom.Configuration(builder.Configuration)
 	.CreateLogger();
@@ -12,25 +12,20 @@ builder.Host.UseSerilog();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddSingleton<IImageComparisonService, ImageComparisonService>();
+builder.Services.AddScoped<IUploadService, UploadService>();
+builder.Services.AddScoped<IImageComparisonService, ImageComparisonService>();
 
 var app = builder.Build();
 
+if (app.Environment.IsDevelopment())
+{
+	app.UseSwagger();
+	app.UseSwaggerUI();
+}
+
+app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseSwagger();
-app.UseSwaggerUI();
+app.UseAuthorization();
 app.MapControllers();
 
-try
-{
-	Log.Information("Iniciando o aplicativo...");
-	app.Run();
-}
-catch (Exception ex)
-{
-	Log.Fatal(ex, "Erro fatal na inicialização");
-}
-finally
-{
-	Log.CloseAndFlush();
-}
+app.Run();
