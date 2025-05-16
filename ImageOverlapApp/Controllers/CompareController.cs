@@ -1,25 +1,29 @@
 using Microsoft.AspNetCore.Mvc;
+using ImageOverlapApp.Services;
 
-[ApiController]
-[Route("compare")]
-public class CompareController : ControllerBase
+namespace ImageOverlapApp.Controllers
 {
-	private readonly IWebHostEnvironment _env;
-	private readonly IImageComparisonService _comparisonService;
-
-	public CompareController(IWebHostEnvironment env, IImageComparisonService comparisonService)
+	[ApiController]
+	public class CompareController : ControllerBase
 	{
-		_env = env;
-		_comparisonService = comparisonService;
-	}
+		private IImageComparisonService ComparisonService { get; set; }
 
-	[HttpPost]
-	public IActionResult Compare()
-	{
-		var groupAPath = Path.Combine(_env.WebRootPath ?? "wwwroot", "groupA");
-		var groupBPath = Path.Combine(_env.WebRootPath ?? "wwwroot", "groupB");
+		public CompareController(IImageComparisonService comparisonService)
+		{
+			ComparisonService = comparisonService;
+		}
 
-		var results = _comparisonService.Compare(groupAPath, groupBPath);
-		return Ok(results);
+		[HttpPost("compare")]
+		public IActionResult Compare()
+		{
+			var result = ComparisonService.CompareGroups("groupA", "groupB");
+
+			if (result == null)
+			{
+				return StatusCode(500, "Erro ao realizar comparação.");
+			}
+
+			return Ok(result);
+		}
 	}
 }
