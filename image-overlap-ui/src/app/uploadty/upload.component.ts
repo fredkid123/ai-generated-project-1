@@ -10,6 +10,7 @@ import { InstanceService } from '../instance.service';
 export class UploadComponent {
 	filesA: File[] = [];
 	filesB: File[] = [];
+	message: string = '';
 
 	constructor(private http: HttpClient, private instanceService: InstanceService) {}
 
@@ -36,7 +37,12 @@ export class UploadComponent {
 		}
 
 		this.http.post(`/upload/${group}/${instanceId}`, formData).subscribe(() => {
-			alert(`${group} enviado com sucesso`);
+			this.message = `Grupo ${group === 'groupA' ? 'A' : 'B'} enviado com sucesso.`;
+			if (group === 'groupA') {
+				this.filesA = [];
+			} else {
+				this.filesB = [];
+			}
 		});
 	}
 }
