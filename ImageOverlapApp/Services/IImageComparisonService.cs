@@ -1,9 +1,9 @@
-using System.Collections.Generic;
+using ImageOverlapApp.Models;
 
 namespace ImageOverlapApp.Services
 {
 	public interface IImageComparisonService
 	{
-		IEnumerable<(string A, string B)> CompareImages(string groupADir, string groupBDir);
+		IEnumerable<ComparisonResult> CompareImages(string pathA, string pathB);
 	}
 }

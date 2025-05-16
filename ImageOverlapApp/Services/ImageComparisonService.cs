@@ -1,7 +1,6 @@
 using ImageOverlapApp.Models;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
@@ -55,7 +54,7 @@ namespace ImageOverlapApp.Services
 			return results;
 		}
 
-		private float ComputeSSIM(Image<Rgba32> imgA, Image<Rgba32> imgB)
+		private static float ComputeSSIM(Image<Rgba32> imgA, Image<Rgba32> imgB)
 		{
 			int width = Math.Min(imgA.Width, imgB.Width);
 			int height = Math.Min(imgA.Height, imgB.Height);
@@ -68,8 +67,8 @@ namespace ImageOverlapApp.Services
 
 			for (int y = 0; y < height; y++)
 			{
-				var rowA = imgA.GetPixelRowSpan(y);
-				var rowB = imgB.GetPixelRowSpan(y);
+				var rowA = imgA.Frames.RootFrame.GetPixelRowSpan(y);
+				var rowB = imgB.Frames.RootFrame.GetPixelRowSpan(y);
 				for (int x = 0; x < width; x++)
 				{
 					float a = rowA[x].R / 255f;
@@ -84,8 +83,8 @@ namespace ImageOverlapApp.Services
 
 			for (int y = 0; y < height; y++)
 			{
-				var rowA = imgA.GetPixelRowSpan(y);
-				var rowB = imgB.GetPixelRowSpan(y);
+				var rowA = imgA.Frames.RootFrame.GetPixelRowSpan(y);
+				var rowB = imgB.Frames.RootFrame.GetPixelRowSpan(y);
 				for (int x = 0; x < width; x++)
 				{
 					float a = rowA[x].R / 255f - meanA;
