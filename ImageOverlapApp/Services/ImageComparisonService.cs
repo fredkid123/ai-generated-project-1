@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.Extensions.Logging;
-using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace ImageOverlapApp.Services
 {
@@ -45,8 +43,8 @@ namespace ImageOverlapApp.Services
 		{
 			try
 			{
-				using var imgA = Image.Load<Rgba32>(pathA);
-				using var imgB = Image.Load<Rgba32>(pathB);
+				using var imgA = SixLabors.ImageSharp.Image.Load<Rgba32>(pathA);
+				using var imgB = SixLabors.ImageSharp.Image.Load<Rgba32>(pathB);
 
 				imgA.Mutate(x => x.Resize(100, 100).Grayscale());
 				imgB.Mutate(x => x.Resize(100, 100).Grayscale());
@@ -62,7 +60,7 @@ namespace ImageOverlapApp.Services
 			}
 		}
 
-		private static double ComputeDifference(Image<Rgba32> a, Image<Rgba32> b)
+		private double ComputeDifference(SixLabors.ImageSharp.Image<Rgba32> a, SixLabors.ImageSharp.Image<Rgba32> b)
 		{
 			double total = 0;
 			for (int y = 0; y < a.Height; y++)
