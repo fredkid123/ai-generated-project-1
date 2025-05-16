@@ -23,9 +23,8 @@ namespace ImageOverlapApp.Tests
 			Directory.CreateDirectory(groupBDir);
 
 			// Use a mesma imagem para garantir similaridade
-			var source = "TestData/sample.jpg";
-			File.Copy(source, Path.Combine(groupADir, "a1.jpg"), overwrite: true);
-			File.Copy(source, Path.Combine(groupBDir, "b1.jpg"), overwrite: true);
+			File.Copy("TestData/imgA_0000.jpg", Path.Combine(groupADir, "a1.jpg"), overwrite: true);
+			File.Copy("TestData/imgB_0000.jpg", Path.Combine(groupBDir, "b1.jpg"), overwrite: true);
 
 			// Act
 			var matches = service.CompareImages(groupADir, groupBDir);
