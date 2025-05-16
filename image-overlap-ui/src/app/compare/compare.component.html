@@ -1,9 +1,10 @@
 <h3>Comparar</h3>
+<input [(ngModel)]="instanceId" placeholder="Instance ID">
 <button (click)="compare()">Comparar Imagens</button>
 
 <div *ngIf="results.length > 0">
-  <h4>Resultados:</h4>
-  <ul>
-    <li *ngFor="let r of results">{{ r.A }} ↔ {{ r.B }}</li>
-  </ul>
+	<h4>Resultados:</h4>
+	<ul>
+		<li *ngFor="let r of results">{{ r.A }} ↔ {{ r.B }}</li>
+	</ul>
 </div>
