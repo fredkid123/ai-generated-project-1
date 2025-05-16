@@ -1,0 +1,17 @@
+<div class="upload-container">
+	<h2>Upload de Imagens</h2>
+	<div class="upload-group">
+		<mat-card>
+			<mat-card-title>Grupo A</mat-card-title>
+			<input type="file" #inputA multiple (change)="onFileChange($event, 'groupA')" matInput>
+			<button mat-raised-button color="primary" (click)="upload('groupA')">Enviar Grupo A</button>
+		</mat-card>
+		<mat-card>
+			<mat-card-title>Grupo B</mat-card-title>
+			<input type="file" #inputB multiple (change)="onFileChange($event, 'groupB')" matInput>
+			<button mat-raised-button color="accent" (click)="upload('groupB')">Enviar Grupo B</button>
+		</mat-card>
+	</div>
+	<p class="success" *ngIf="message">{{ message }}</p>
+	<p class="error" *ngIf="error">{{ error }}</p>
+</div>

@@ -1,0 +1,10 @@
+{
+	"/upload": {
+		"target": "https://localhost:61119",
+		"secure": false
+	},
+	"/compare": {
+		"target": "https://localhost:61119",
+		"secure": false
+	}
+}
