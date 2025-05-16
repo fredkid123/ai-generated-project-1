@@ -1,39 +1,40 @@
-public interface IImageComparisonService
-{
-	List<object> Compare(string groupAPath, string groupBPath);
-}
+using Microsoft.Extensions.Logging;
+using System.IO;
 
-public class ImageComparisonService : IImageComparisonService
+namespace ImageOverlapApp.Services
 {
-	public List<object> Compare(string groupAPath, string groupBPath)
+	public class ImageComparisonService : IImageComparisonService
 	{
-		var filesA = Directory.GetFiles(groupAPath);
-		var filesB = Directory.GetFiles(groupBPath);
+		private ILogger<ImageComparisonService> Logger { get; set; }
 
-		var results = filesA.SelectMany(a => filesB, (a, b) =>
+		public ImageComparisonService(ILogger<ImageComparisonService> logger)
 		{
-			var nameA = Path.GetFileNameWithoutExtension(a);
-			var nameB = Path.GetFileNameWithoutExtension(b);
+			Logger = logger;
+		}
 
-			var overlap = nameA.Length >= 3 && nameB.Length >= 3 && nameA[..3] == nameB[..3];
+		public IEnumerable<object> CompareGroups(string groupA, string groupB)
+		{
+			string groupADir = Path.Combine("wwwroot", groupA);
+			string groupBDir = Path.Combine("wwwroot", groupB);
 
-			if (overlap)
+			if (!Directory.Exists(groupADir) || !Directory.Exists(groupBDir))
 			{
-				return new
-				{
-					A = Path.GetFileName(a),
-					B = Path.GetFileName(b),
-					Overlap = true
-				};
+				Logger.LogWarning("Um dos diretórios de comparação não existe: {groupADir}, {groupBDir}", groupADir, groupBDir);
+				return Enumerable.Empty<object>();
 			}
-			else
-			{
-				return null;
-			}
-		})
-		.Where(x => x != null)
-		.ToList<object>();
 
-		return results;
+			Logger.LogInformation("Comparando arquivos entre {groupA} e {groupB}", groupADir, groupBDir);
+
+			var groupAFiles = Directory.GetFiles(groupADir).Select(Path.GetFileName);
+			var groupBFiles = Directory.GetFiles(groupBDir).Select(Path.GetFileName);
+
+			return groupAFiles.SelectMany(a => groupBFiles, (a, b) => new
+			{
+				A = a,
+				B = b,
+				Overlap = Path.GetFileNameWithoutExtension(a).Substring(0, 3)
+						 == Path.GetFileNameWithoutExtension(b).Substring(0, 3)
+			});
+		}
 	}
 }
