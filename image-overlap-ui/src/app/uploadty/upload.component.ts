@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild, ElementRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { InstanceService } from '../instance.service';
 
@@ -11,6 +11,9 @@ export class UploadComponent {
 	filesA: File[] = [];
 	filesB: File[] = [];
 	message: string = '';
+
+	@ViewChild('inputA') inputA!: ElementRef;
+	@ViewChild('inputB') inputB!: ElementRef;
 
 	constructor(private http: HttpClient, private instanceService: InstanceService) {}
 
@@ -40,8 +43,10 @@ export class UploadComponent {
 			this.message = `Grupo ${group === 'groupA' ? 'A' : 'B'} enviado com sucesso.`;
 			if (group === 'groupA') {
 				this.filesA = [];
+				this.inputA.nativeElement.value = '';
 			} else {
 				this.filesB = [];
+				this.inputB.nativeElement.value = '';
 			}
 		});
 	}

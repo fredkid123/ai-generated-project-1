@@ -1,9 +1,9 @@
 <h3>Upload - Grupo A</h3>
-<input type="file" multiple (change)="onFileChange($event, 'groupA')">
+<input type="file" #inputA multiple (change)="onFileChange($event, 'groupA')">
 <button (click)="upload('groupA')">Enviar Grupo A</button>
 
 <h3>Upload - Grupo B</h3>
-<input type="file" multiple (change)="onFileChange($event, 'groupB')">
+<input type="file" #inputB multiple (change)="onFileChange($event, 'groupB')">
 <button (click)="upload('groupB')">Enviar Grupo B</button>
 
 <p *ngIf="message">{{ message }}</p>
