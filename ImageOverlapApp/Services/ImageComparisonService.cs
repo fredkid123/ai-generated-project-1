@@ -67,12 +67,12 @@ namespace ImageOverlapApp.Services
 
 			for (int y = 0; y < height; y++)
 			{
-				var rowA = imgA.GetPixelRowSpan(y);
-				var rowB = imgB.GetPixelRowSpan(y);
+				
+				
 				for (int x = 0; x < width; x++)
 				{
-					float a = rowA[x].R / 255f;
-					float b = rowB[x].R / 255f;
+					float a = imgA[x, y].R / 255f;
+					float b = imgB[x, y].R / 255f;
 					meanA += a;
 					meanB += b;
 				}
@@ -83,12 +83,12 @@ namespace ImageOverlapApp.Services
 
 			for (int y = 0; y < height; y++)
 			{
-				var rowA = imgA.GetPixelRowSpan(y);
-				var rowB = imgB.GetPixelRowSpan(y);
+				
+				
 				for (int x = 0; x < width; x++)
 				{
-					float a = rowA[x].R / 255f - meanA;
-					float b = rowB[x].R / 255f - meanB;
+					float a = imgA[x, y].R / 255f - meanA;
+					float b = imgB[x, y].R / 255f - meanB;
 					varA += a * a;
 					varB += b * b;
 					cov += a * b;
