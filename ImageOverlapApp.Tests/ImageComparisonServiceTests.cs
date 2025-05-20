@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -16,22 +15,25 @@ namespace ImageOverlapApp.Tests
 			var loggerMock = new Mock<ILogger<ImageComparisonService>>();
 			var configMock = new Mock<IConfiguration>();
 			configMock.Setup(c => c["SimilarityThreshold"]).Returns("0.85");
-
 			return new ImageComparisonService(loggerMock.Object, configMock.Object);
+		}
+
+		private void PrepareTestImages(string groupAPath, string groupBPath, string fileA, string fileB)
+		{
+			Directory.CreateDirectory(groupAPath);
+			Directory.CreateDirectory(groupBPath);
+			File.Copy($"TestData/{fileA}", Path.Combine(groupAPath, fileA), true);
+			File.Copy($"TestData/{fileB}", Path.Combine(groupBPath, fileB), true);
 		}
 
 		[Fact]
 		public void CompareImages_ShouldReturnMatchingPairs_WhenOverlapDetected()
 		{
 			var service = CreateService();
-
 			var groupA = "TestData/groupA";
 			var groupB = "TestData/groupB";
 
-			Directory.CreateDirectory(groupA);
-			Directory.CreateDirectory(groupB);
-			File.Copy("TestData/imgA_0000.jpg", Path.Combine(groupA, "imgA_0000.jpg"), true);
-			File.Copy("TestData/imgB_0000.jpg", Path.Combine(groupB, "imgB_0000.jpg"), true);
+			PrepareTestImages(groupA, groupB, "imgA_0000.jpg", "imgB_0000.jpg");
 
 			var result = service.CompareImages(groupA, groupB);
 
@@ -42,14 +44,10 @@ namespace ImageOverlapApp.Tests
 		public void CompareImages_ShouldNotReturnPair_WhenNoOverlap()
 		{
 			var service = CreateService();
-
 			var groupA = "TestData/groupA";
 			var groupB = "TestData/groupB";
 
-			Directory.CreateDirectory(groupA);
-			Directory.CreateDirectory(groupB);
-			File.Copy("TestData/imgA_0000.jpg", Path.Combine(groupA, "imgA_0000.jpg"), true);
-			File.Copy("TestData/imgB_0001.jpg", Path.Combine(groupB, "imgB_0001.jpg"), true);
+			PrepareTestImages(groupA, groupB, "imgA_0000.jpg", "imgB_0001.jpg");
 
 			var result = service.CompareImages(groupA, groupB);
 

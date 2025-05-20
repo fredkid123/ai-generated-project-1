@@ -67,8 +67,8 @@ namespace ImageOverlapApp.Services
 
 			for (int y = 0; y < height; y++)
 			{
-				var rowA = imgA.Frames.RootFrame.GetPixelMemoryGroup().GetRowSpan(y);
-				var rowB = imgB.Frames.RootFrame.GetPixelMemoryGroup().GetRowSpan(y);
+				var rowA = imgA.GetPixelRowSpan(y);
+				var rowB = imgB.GetPixelRowSpan(y);
 				for (int x = 0; x < width; x++)
 				{
 					float a = rowA[x].R / 255f;
@@ -83,8 +83,8 @@ namespace ImageOverlapApp.Services
 
 			for (int y = 0; y < height; y++)
 			{
-				var rowA = imgA.Frames.RootFrame.GetPixelMemoryGroup().GetRowSpan(y);
-				var rowB = imgB.Frames.RootFrame.GetPixelMemoryGroup().GetRowSpan(y);
+				var rowA = imgA.GetPixelRowSpan(y);
+				var rowB = imgB.GetPixelRowSpan(y);
 				for (int x = 0; x < width; x++)
 				{
 					float a = rowA[x].R / 255f - meanA;
