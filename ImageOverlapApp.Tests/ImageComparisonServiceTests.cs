@@ -1,3 +1,4 @@
+using Moq;
 using ImageOverlapApp.Services;
 using System;
 using System.IO;
