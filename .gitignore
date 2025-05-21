@@ -14,5 +14,6 @@ package-lock.json
 node_modules/
 .angular/
 *.zip
+*.bak
 
 ImageOverlapApp/wwwroot/

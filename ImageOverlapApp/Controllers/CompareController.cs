@@ -10,31 +10,24 @@ namespace ImageOverlapApp.Controllers
 	{
 		private ILogger<CompareController> Logger { get; set; }
 		private IImageComparisonService ImageComparisonService { get; set; }
-		private IPathService PathService { get; set; }
 
 		public CompareController(
 			ILogger<CompareController> logger,
-			IImageComparisonService imageComparisonService,
-			IPathService pathService)
+			IImageComparisonService imageComparisonService)
 		{
 			Logger = logger;
 			ImageComparisonService = imageComparisonService;
-			PathService = pathService;
 		}
 
 		[HttpPost("{instanceId}")]
 		public IActionResult Compare(string instanceId)
 		{
-			var groupA = PathService.GetGroupPath("groupA", instanceId);
-			var groupB = PathService.GetGroupPath("groupB", instanceId);
-
-			if (!Directory.Exists(groupA) || !Directory.Exists(groupB))
+			var results = ImageComparisonService.CompareImages(instanceId);
+			if (results == null)
 			{
 				Logger.LogWarning("Um dos grupos de imagem nao foi encontrado.");
 				return BadRequest("Um dos grupos de imagem nao foi encontrado.");
 			}
-
-			var results = ImageComparisonService.CompareImages(groupA, groupB);
 			return Ok(results);
 		}
 	}

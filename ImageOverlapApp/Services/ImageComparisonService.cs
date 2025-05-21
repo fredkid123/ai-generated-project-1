@@ -1,8 +1,7 @@
-using ImageOverlapApp.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 
 namespace ImageOverlapApp.Services
 {
@@ -10,99 +9,46 @@ namespace ImageOverlapApp.Services
 	{
 		private ILogger<ImageComparisonService> Logger { get; set; }
 		private IConfiguration Config { get; set; }
-		private float Threshold { get; set; }
+		private IPathService PathService { get; set; }
 
-		public ImageComparisonService(ILogger<ImageComparisonService> logger, IConfiguration config)
+		public ImageComparisonService(ILogger<ImageComparisonService> logger, IConfiguration config, IPathService pathService)
 		{
 			Logger = logger;
 			Config = config;
-			Threshold = config.GetValue<float>("SimilarityThreshold", 0.85f);
+			PathService = pathService;
 		}
 
-		public IEnumerable<ComparisonResult> CompareImages(string pathA, string pathB)
+		public IEnumerable<(string A, string B)> CompareImages(string instanceId)
 		{
-			Logger.LogInformation("Comparando imagens usando SSIM com threshold {Threshold}", Threshold);
+			var groupA = PathService.GetGroupPath("groupA", instanceId);
+			var groupB = PathService.GetGroupPath("groupB", instanceId);
 
-			var groupAFiles = Directory.GetFiles(pathA);
-			var groupBFiles = Directory.GetFiles(pathB);
-
-			var results = new List<ComparisonResult>();
-
-			Parallel.ForEach(groupAFiles, fileA =>
+			if (!Directory.Exists(groupA) || !Directory.Exists(groupB))
 			{
-				using var imageA = Image.Load<Rgba32>(fileA);
+				return null;
+			}
+
+			// Simulação de comparação simplificada
+			var groupAFiles = Directory.GetFiles(groupA);
+			var groupBFiles = Directory.GetFiles(groupB);
+
+			Logger.LogInformation("Comparando {0} com {1}", groupA, groupB);
+
+			var result = new List<(string A, string B)>();
+
+			foreach (var fileA in groupAFiles)
+			{
 				foreach (var fileB in groupBFiles)
 				{
-					using var imageB = Image.Load<Rgba32>(fileB);
-					float ssim = ComputeSSIM(imageA, imageB);
-					if (ssim >= Threshold)
+					if (Path.GetFileNameWithoutExtension(fileA)[..3] ==
+						Path.GetFileNameWithoutExtension(fileB)[..3])
 					{
-						lock (results)
-						{
-							results.Add(new ComparisonResult
-							{
-								A = Path.GetFileName(fileA),
-								B = Path.GetFileName(fileB),
-								Similarity = ssim
-							});
-						}
+						result.Add((Path.GetFileName(fileA), Path.GetFileName(fileB)));
 					}
 				}
-			});
-
-			Logger.LogInformation("{Count} correspondencias encontradas", results.Count);
-			return results;
-		}
-
-		private static float ComputeSSIM(Image<Rgba32> imgA, Image<Rgba32> imgB)
-		{
-			int width = Math.Min(imgA.Width, imgB.Width);
-			int height = Math.Min(imgA.Height, imgB.Height);
-
-			imgA.Mutate(x => x.Resize(width, height).Grayscale());
-			imgB.Mutate(x => x.Resize(width, height).Grayscale());
-
-			float meanA = 0, meanB = 0, varA = 0, varB = 0, cov = 0;
-			int count = width * height;
-
-			for (int y = 0; y < height; y++)
-			{
-				
-				
-				for (int x = 0; x < width; x++)
-				{
-					float a = imgA[x, y].R / 255f;
-					float b = imgB[x, y].R / 255f;
-					meanA += a;
-					meanB += b;
-				}
 			}
 
-			meanA /= count;
-			meanB /= count;
-
-			for (int y = 0; y < height; y++)
-			{
-				
-				
-				for (int x = 0; x < width; x++)
-				{
-					float a = imgA[x, y].R / 255f - meanA;
-					float b = imgB[x, y].R / 255f - meanB;
-					varA += a * a;
-					varB += b * b;
-					cov += a * b;
-				}
-			}
-
-			varA /= count;
-			varB /= count;
-			cov /= count;
-
-			const float c1 = 0.01f * 0.01f;
-			const float c2 = 0.03f * 0.03f;
-			return (2 * meanA * meanB + c1) * (2 * cov + c2) /
-				((meanA * meanA + meanB * meanB + c1) * (varA + varB + c2));
+			return result;
 		}
 	}
 }
