@@ -14,7 +14,7 @@ namespace ImageOverlapApp.Tests
 		{
 			var loggerMock = new Mock<ILogger<ImageComparisonService>>();
 			var configMock = new Mock<IConfiguration>();
-		configMock.Setup(c => c.GetValue<float>("ComparisonSettings:SsimThreshold", 0.85f)).Returns(0.85f);
+			configMock.Setup(c => c.GetValue<float>("ComparisonSettings:SsimThreshold", 0.85f)).Returns(0.85f);
 			return new ImageComparisonService(loggerMock.Object, configMock.Object);
 		}
 
@@ -55,4 +55,3 @@ namespace ImageOverlapApp.Tests
 		}
 	}
 }
-
