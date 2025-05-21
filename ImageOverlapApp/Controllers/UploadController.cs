@@ -4,6 +4,7 @@ using ImageOverlapApp.Services;
 namespace ImageOverlapApp.Controllers
 {
 	[ApiController]
+	[Route("upload")]
 	public class UploadController : ControllerBase
 	{
 		private IUploadService UploadService { get; set; }
@@ -13,7 +14,7 @@ namespace ImageOverlapApp.Controllers
 			UploadService = uploadService;
 		}
 
-		[HttpPost("upload/{group}/{instanceId}")]
+		[HttpPost("{group}/{instanceId}")]
 		public IActionResult Upload(string group, string instanceId, [FromForm] IFormFile[] files)
 		{
 			if (files == null || files.Length == 0)

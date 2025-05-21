@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using ImageOverlapApp.Models;
 using ImageOverlapApp.Services;
 
 namespace ImageOverlapApp.Controllers
@@ -19,7 +17,7 @@ namespace ImageOverlapApp.Controllers
 		}
 
 		[HttpPost("{instanceId}")]
-		public IActionResult Compare(string instanceId)
+		public IActionResult Compare([FromRoute] string instanceId)
 		{
 			Logger.LogInformation("Iniciando comparacao para instanceId: {InstanceId}", instanceId);
 
@@ -29,7 +27,7 @@ namespace ImageOverlapApp.Controllers
 			if (!Directory.Exists(groupA) || !Directory.Exists(groupB))
 			{
 				Logger.LogWarning("Um dos grupos de imagem nao foi encontrado.");
-				return NotFound("Um dos grupos de imagem nao foi encontrado.");
+				return BadRequest("Um dos grupos de imagem nao foi encontrado.");
 			}
 
 			var result = ImageComparisonService.CompareImages(groupA, groupB);
