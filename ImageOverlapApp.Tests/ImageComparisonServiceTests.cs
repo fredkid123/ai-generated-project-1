@@ -14,6 +14,7 @@ namespace ImageOverlapApp.Tests
 		{
 			var loggerMock = new Mock<ILogger<ImageComparisonService>>();
 			var configMock = new Mock<IConfiguration>();
+		configMock.Setup(c => c.GetValue<float>("ComparisonSettings:SsimThreshold", 0.85f)).Returns(0.85f);
 			configMock.Setup(c => c["SimilarityThreshold"]).Returns("0.85");
 			return new ImageComparisonService(loggerMock.Object, configMock.Object);
 		}
@@ -55,3 +56,16 @@ namespace ImageOverlapApp.Tests
 		}
 	}
 }
+
+
+
+		private string[] PrepareTestImages(string source1, string source2, string dest1, string dest2)
+		{
+			var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+			Directory.CreateDirectory(tempDir);
+			var pathA = Path.Combine(tempDir, dest1);
+			var pathB = Path.Combine(tempDir, dest2);
+			File.Copy(source1, pathA, true);
+			File.Copy(source2, pathB, true);
+			return new[] { pathA, pathB };
+		}
