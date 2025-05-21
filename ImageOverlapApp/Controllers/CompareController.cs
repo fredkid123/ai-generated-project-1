@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using ImageOverlapApp.Services;
 
 namespace ImageOverlapApp.Controllers
@@ -7,22 +8,25 @@ namespace ImageOverlapApp.Controllers
 	[Route("compare")]
 	public class CompareController : ControllerBase
 	{
-		private IImageComparisonService ImageComparisonService { get; set; }
 		private ILogger<CompareController> Logger { get; set; }
+		private IImageComparisonService ImageComparisonService { get; set; }
+		private IPathService PathService { get; set; }
 
-		public CompareController(IImageComparisonService imageComparisonService, ILogger<CompareController> logger)
+		public CompareController(
+			ILogger<CompareController> logger,
+			IImageComparisonService imageComparisonService,
+			IPathService pathService)
 		{
-			ImageComparisonService = imageComparisonService;
 			Logger = logger;
+			ImageComparisonService = imageComparisonService;
+			PathService = pathService;
 		}
 
 		[HttpPost("{instanceId}")]
-		public IActionResult Compare([FromRoute] string instanceId)
+		public IActionResult Compare(string instanceId)
 		{
-			Logger.LogInformation("Iniciando comparacao para instanceId: {InstanceId}", instanceId);
-
-			string groupA = Path.Combine("wwwroot", instanceId, "groupA");
-			string groupB = Path.Combine("wwwroot", instanceId, "groupB");
+			var groupA = PathService.GetGroupPath("groupA", instanceId);
+			var groupB = PathService.GetGroupPath("groupB", instanceId);
 
 			if (!Directory.Exists(groupA) || !Directory.Exists(groupB))
 			{
@@ -30,8 +34,8 @@ namespace ImageOverlapApp.Controllers
 				return BadRequest("Um dos grupos de imagem nao foi encontrado.");
 			}
 
-			var result = ImageComparisonService.CompareImages(groupA, groupB);
-			return Ok(result);
+			var results = ImageComparisonService.CompareImages(groupA, groupB);
+			return Ok(results);
 		}
 	}
 }
