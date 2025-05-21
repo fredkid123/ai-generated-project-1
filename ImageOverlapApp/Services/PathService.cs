@@ -1,19 +1,19 @@
-using Microsoft.AspNetCore.Hosting;
+using System.IO;
 
 namespace ImageOverlapApp.Services
 {
-	public class PathService : IPathService
+	public class PathService
 	{
-		private IWebHostEnvironment Env { get; set; }
+		private readonly string _webRootPath;
 
 		public PathService(IWebHostEnvironment env)
 		{
-			Env = env;
+			_webRootPath = env.WebRootPath ?? "wwwroot";
 		}
 
-		public string GetGroupPath(string group, string instanceId)
+		public string GetGroupPath(string instanceId, string group)
 		{
-			return Path.Combine(Env.WebRootPath ?? "wwwroot", instanceId, group);
+			return Path.Combine(_webRootPath, instanceId, group);
 		}
 	}
 }
