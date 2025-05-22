@@ -16,6 +16,7 @@ try
 	builder.Services.AddSwaggerGen();
 	builder.Services.AddScoped<IUploadService, UploadService>();
 	builder.Services.AddScoped<IImageComparisonService, ImageComparisonService>();
+	builder.Services.AddScoped<IPathService, PathService>();
 
 	var app = builder.Build();
 
