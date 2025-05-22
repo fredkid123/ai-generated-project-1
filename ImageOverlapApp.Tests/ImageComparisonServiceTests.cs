@@ -12,10 +12,14 @@ namespace ImageOverlapApp.Tests
 	{
 		private ImageComparisonService CreateService()
 		{
+			var pathServiceMock = new Mock<IPathService>();
 			var loggerMock = new Mock<ILogger<ImageComparisonService>>();
-			var configMock = new Mock<IConfiguration>();
-			configMock.Setup(c => c.GetValue<float>("ComparisonSettings:SsimThreshold", 0.85f)).Returns(0.85f);
-			return new ImageComparisonService(loggerMock.Object, configMock.Object);
+			var configServiceMock = new Mock<IConfiguration>();
+			var sectionMock = new Mock<IConfigurationSection>();
+			sectionMock.Setup(c => c.Value).Returns((string)null);
+			configServiceMock.Setup(c => c.GetSection(It.IsAny<string>())).Returns(sectionMock.Object);
+			configServiceMock.Setup(c => c["ComparisonSettings:SsimThreshold"]).Returns("0.85");
+			return new ImageComparisonService(loggerMock.Object, configServiceMock.Object, pathServiceMock.Object);
 		}
 
 		private void PrepareTestImages(string groupAPath, string groupBPath, string fileA, string fileB)
@@ -35,7 +39,7 @@ namespace ImageOverlapApp.Tests
 
 			PrepareTestImages(groupA, groupB, "imgA_0000.jpg", "imgB_0000.jpg");
 
-			var result = service.CompareImages(groupA, groupB);
+			var result = service.CompareImages(groupA, groupB, "");
 
 			Assert.Contains(result, r => r.A.Contains("imgA_0000") && r.B.Contains("imgB_0000"));
 		}
@@ -49,7 +53,7 @@ namespace ImageOverlapApp.Tests
 
 			PrepareTestImages(groupA, groupB, "imgA_0000.jpg", "imgB_0001.jpg");
 
-			var result = service.CompareImages(groupA, groupB);
+			var result = service.CompareImages(groupA, groupB, "");
 
 			Assert.DoesNotContain(result, r => r.A.Contains("imgA_0000") && r.B.Contains("imgB_0001"));
 		}

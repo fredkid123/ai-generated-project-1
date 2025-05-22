@@ -7,18 +7,18 @@ namespace ImageOverlapApp.Services
 {
 	public class UploadService : IUploadService
 	{
-		private IWebHostEnvironment Env { get; set; }
+		private IPathService PathService { get; set; }
 		private ILogger<UploadService> Logger { get; set; }
 
-		public UploadService(IWebHostEnvironment env, ILogger<UploadService> logger)
+		public UploadService(IPathService pathService, ILogger<UploadService> logger)
 		{
-			Env = env;
+			PathService = pathService;
 			Logger = logger;
 		}
 
 		public void UploadFiles(string group, string instanceId, IFormFile[] files)
 		{
-			string uploadPath = Path.Combine(Env.WebRootPath ?? "wwwroot", group, instanceId);
+			string uploadPath = PathService.GetGroupPath(group, instanceId);
 
 			if (!Directory.Exists(uploadPath))
 			{
@@ -33,7 +33,7 @@ namespace ImageOverlapApp.Services
 				Logger.LogInformation("Arquivo salvo: {filePath}", filePath);
 			}
 
-			CleanupOldFolders(Path.Combine(Env.WebRootPath ?? "wwwroot", group));
+			CleanupOldFolders(Path.GetDirectoryName(uploadPath));
 		}
 
 		private void CleanupOldFolders(string basePath)

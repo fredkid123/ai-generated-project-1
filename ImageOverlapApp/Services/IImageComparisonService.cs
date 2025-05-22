@@ -4,6 +4,6 @@ namespace ImageOverlapApp.Services
 {
 	public interface IImageComparisonService
 	{
-		IEnumerable<ComparisonResult> CompareImages(string pathA, string pathB);
+		IEnumerable<ComparisonResult> CompareImages(string groupA, string groupB, string instanceId);
 	}
 }

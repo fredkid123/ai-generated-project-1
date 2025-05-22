@@ -25,16 +25,7 @@ namespace ImageOverlapApp.Controllers
 		[HttpPost("{instanceId}")]
 		public IActionResult Compare(string instanceId)
 		{
-			var groupA = PathService.GetGroupPath("groupA", instanceId);
-			var groupB = PathService.GetGroupPath("groupB", instanceId);
-
-			if (!Directory.Exists(groupA) || !Directory.Exists(groupB))
-			{
-				Logger.LogWarning("Um dos grupos de imagem nao foi encontrado.");
-				return BadRequest("Um dos grupos de imagem nao foi encontrado.");
-			}
-
-			var results = ImageComparisonService.CompareImages(groupA, groupB);
+			var results = ImageComparisonService.CompareImages("groupA", "groupB", instanceId);
 			return Ok(results);
 		}
 	}

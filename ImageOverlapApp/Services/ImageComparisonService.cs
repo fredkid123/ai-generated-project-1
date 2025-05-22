@@ -11,17 +11,28 @@ namespace ImageOverlapApp.Services
 		private ILogger<ImageComparisonService> Logger { get; set; }
 		private IConfiguration Config { get; set; }
 		private float Threshold { get; set; }
+		private IPathService PathService { get; set; }
 
-		public ImageComparisonService(ILogger<ImageComparisonService> logger, IConfiguration config)
+		public ImageComparisonService(ILogger<ImageComparisonService> logger, IConfiguration config, IPathService pathService)
 		{
 			Logger = logger;
 			Config = config;
 			Threshold = config.GetValue<float>("SimilarityThreshold", 0.85f);
+			PathService = pathService;
 		}
 
-		public IEnumerable<ComparisonResult> CompareImages(string pathA, string pathB)
+		public IEnumerable<ComparisonResult> CompareImages(string groupA, string groupB, string instanceId)
 		{
 			Logger.LogInformation("Comparando imagens usando SSIM com threshold {Threshold}", Threshold);
+
+			string pathA = PathService.GetGroupPath(groupA, instanceId);
+			string pathB = PathService.GetGroupPath(groupB, instanceId);
+
+			if (!Directory.Exists(pathA) || !Directory.Exists(pathB))
+			{
+				Logger.LogWarning("Um dos grupos de imagem nao foi encontrado.");
+				return Enumerable.Empty<ComparisonResult>();
+			}
 
 			var groupAFiles = Directory.GetFiles(pathA);
 			var groupBFiles = Directory.GetFiles(pathB);
