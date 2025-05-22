@@ -1,0 +1,11 @@
+<div class="compare-container">
+	<h2>Comparar Imagens</h2>
+	<button mat-raised-button color="warn" (click)="compare()">Comparar</button>
+
+	<div *ngIf="results.length > 0" class="results">
+		<h3>Resultados:</h3>
+		<mat-list>
+			<mat-list-item *ngFor="let r of results">{{ r.A }} ↔ {{ r.B }}</mat-list-item>
+		</mat-list>
+	</div>
+</div>

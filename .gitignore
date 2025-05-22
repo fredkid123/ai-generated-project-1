@@ -11,8 +11,9 @@ obj/
 .env.*
 
 package-lock.json
-node_modules
+node_modules/
 .angular/
 *.zip
+*.bak
 
 ImageOverlapApp/wwwroot/

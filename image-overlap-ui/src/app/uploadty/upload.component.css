@@ -1,0 +1,27 @@
+.upload-container {
+	max-width: 800px;
+	margin: 20px auto;
+	padding: 20px;
+	background-color: #f2f2f2;
+	border-radius: 10px;
+	box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.upload-group {
+	display: flex;
+	justify-content: space-between;
+	gap: 20px;
+}
+
+mat-card {
+	flex: 1;
+	padding: 20px;
+}
+
+.success {
+	color: green;
+}
+
+.error {
+	color: red;
+}
