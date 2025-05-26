@@ -10,16 +10,13 @@ namespace ImageOverlapApp.Controllers
 	{
 		private ILogger<CompareController> Logger { get; set; }
 		private IImageComparisonService ImageComparisonService { get; set; }
-		private IPathService PathService { get; set; }
 
 		public CompareController(
 			ILogger<CompareController> logger,
-			IImageComparisonService imageComparisonService,
-			IPathService pathService)
+			IImageComparisonService imageComparisonService)
 		{
 			Logger = logger;
 			ImageComparisonService = imageComparisonService;
-			PathService = pathService;
 		}
 
 		[HttpPost("{instanceId}")]

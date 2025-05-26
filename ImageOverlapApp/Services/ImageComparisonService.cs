@@ -9,14 +9,12 @@ namespace ImageOverlapApp.Services
 	public class ImageComparisonService : IImageComparisonService
 	{
 		private ILogger<ImageComparisonService> Logger { get; set; }
-		private IConfiguration Config { get; set; }
 		private float Threshold { get; set; }
 		private IPathService PathService { get; set; }
 
 		public ImageComparisonService(ILogger<ImageComparisonService> logger, IConfiguration config, IPathService pathService)
 		{
 			Logger = logger;
-			Config = config;
 			Threshold = config.GetValue<float>("SimilarityThreshold", 0.85f);
 			PathService = pathService;
 		}
