@@ -22,7 +22,6 @@ namespace ImageOverlapApp.Services
 		public ImageComparisonService(ILogger<ImageComparisonService> logger, IConfiguration config, IPathService pathService)
 		{
 			Logger = logger;
-			// Ensure correct configuration key reading, assuming it's nested under ComparisonSettings
 			Threshold = config.GetValue<float>("ComparisonSettings:SimilarityThreshold", 0.85f); 
 			PathService = pathService;
 		}
@@ -43,23 +42,21 @@ namespace ImageOverlapApp.Services
 			var groupAFiles = Directory.GetFiles(pathA);
 			var groupBFiles = Directory.GetFiles(pathB);
 
-			var results = new ConcurrentBag<ComparisonResult>(); // Use ConcurrentBag for thread-safe adds
+			var results = new ConcurrentBag<ComparisonResult>();
 
 			Parallel.ForEach(groupAFiles, fileA =>
 			{
-				try // Add try-catch for potential image loading errors
+				try
 				{
 					using var imageA = Image.Load<Rgba32>(fileA);
 					foreach (var fileB in groupBFiles)
 					{
-						try // Add try-catch for potential image loading errors
+						try
 						{
 							using var imageB = Image.Load<Rgba32>(fileB);
-							// Clone images before passing to ComputeSSIM to ensure thread safety
 							float ssim = ComputeSSIM(imageA.Clone(), imageB.Clone()); 
 							if (ssim >= Threshold)
 							{
-								// No lock needed for ConcurrentBag
 								results.Add(new ComparisonResult
 								{
 									A = Path.GetFileName(fileA),
@@ -81,26 +78,27 @@ namespace ImageOverlapApp.Services
 			});
 
 			Logger.LogInformation("{Count} correspondencias encontradas", results.Count);
-			return results.ToList(); // Convert back to List as required by the interface
+			return results.ToList();
 		}
 
 		private static float ComputeSSIM(Image<Rgba32> imgA, Image<Rgba32> imgB)
 		{
-			const int fixedSize = 256; // Define fixed size for resizing
+			// Resize to Max dimensions as suggested by user
+			int width = Math.Max(imgA.Width, imgB.Width);
+			int height = Math.Max(imgA.Height, imgB.Height);
 			
 			// Resize and convert to grayscale
-			imgA.Mutate(x => x.Resize(fixedSize, fixedSize).Grayscale());
-			imgB.Mutate(x => x.Resize(fixedSize, fixedSize).Grayscale());
+			imgA.Mutate(x => x.Resize(width, height).Grayscale());
+			imgB.Mutate(x => x.Resize(width, height).Grayscale());
 
 			float meanA = 0, meanB = 0, varA = 0, varB = 0, cov = 0;
-			int count = fixedSize * fixedSize; // Use fixed size for count
+			int count = width * height; // Use max dimensions for count
 
 			// Calculate means
-			for (int y = 0; y < fixedSize; y++)
+			for (int y = 0; y < height; y++)
 			{
-				for (int x = 0; x < fixedSize; x++)
+				for (int x = 0; x < width; x++)
 				{
-					// Access the R channel after grayscale conversion
 					float a = imgA[x, y].R / 255f; 
 					float b = imgB[x, y].R / 255f;
 					meanA += a;
@@ -112,11 +110,10 @@ namespace ImageOverlapApp.Services
 			meanB /= count;
 
 			// Calculate variances and covariance
-			for (int y = 0; y < fixedSize; y++)
+			for (int y = 0; y < height; y++)
 			{
-				for (int x = 0; x < fixedSize; x++)
+				for (int x = 0; x < width; x++)
 				{
-					// Access the R channel after grayscale conversion
 					float a = imgA[x, y].R / 255f - meanA; 
 					float b = imgB[x, y].R / 255f - meanB;
 					varA += a * a;
@@ -129,18 +126,12 @@ namespace ImageOverlapApp.Services
 			varB /= count;
 			cov /= count;
 
-			// SSIM constants
-			const float c1 = 0.01f * 0.01f; // (k1*L)^2, L=1 for normalized values [0,1]
-			const float c2 = 0.03f * 0.03f; // (k2*L)^2, L=1 for normalized values [0,1]
+			const float c1 = 0.01f * 0.01f;
+			const float c2 = 0.03f * 0.03f;
 
-			// Calculate SSIM
-			// Formula: SSIM(x,y) = (2*meanX*meanY + C1) * (2*covXY + C2) / ((meanX^2 + meanY^2 + C1)*(varX + varY + C2))
 			float ssimValue = (2 * meanA * meanB + c1) * (2 * cov + c2) /
 						   ((meanA * meanA + meanB * meanB + c1) * (varA + varB + c2));
 			
-			// Ensure SSIM is within [0, 1] range, although theoretically it should be [-1, 1]
-			// Clamping to [0, 1] might be safer depending on how the threshold is used.
-			// return Math.Max(0f, ssimValue); // Optional: Clamp if negative values are problematic
 			return ssimValue;
 		}
 	}
