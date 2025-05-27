@@ -14,7 +14,7 @@ Localize no repositório o arquivo exato onde esse teste/método está implement
 
 Copie o trecho real do teste/método, mostre ao usuário e explique como chegou até ele.
 
-3 - Se o teste invoca um método/classe (ex: service.CompareImages), investigue no repositório:
+3 - Se o teste/método invoca outro um método/classe (ex: service.CompareImages), investigue no repositório:
 
 Identifique como o objeto/método é criado (ex: via factory, construtor, setup).
 
