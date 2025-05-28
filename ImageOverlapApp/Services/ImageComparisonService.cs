@@ -94,6 +94,7 @@ namespace ImageOverlapApp.Services
 
 			// Calculate means
 			for (int y = 0; y < height; y++)
+			{
 				for (int x = 0; x < width; x++)
 				{
 					float a = imgA[x, y].R / 255f;
@@ -101,11 +102,13 @@ namespace ImageOverlapApp.Services
 					meanA += a;
 					meanB += b;
 				}
+			}
 			meanA /= count;
 			meanB /= count;
 
 			// Calculate variances and covariance
 			for (int y = 0; y < height; y++)
+			{
 				for (int x = 0; x < width; x++)
 				{
 					float a = imgA[x, y].R / 255f - meanA;
@@ -114,6 +117,7 @@ namespace ImageOverlapApp.Services
 					varB += b * b;
 					cov += a * b;
 				}
+			}
 			varA /= count;
 			varB /= count;
 			cov /= count;
