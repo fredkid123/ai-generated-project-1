@@ -8,76 +8,92 @@ namespace ImageOverlapApp.Services
 {
 	public class ImageComparisonService : IImageComparisonService
 	{
-		private ILogger<ImageComparisonService> Logger { get; set; }
-		private float Threshold { get; set; }
-		private IPathService PathService { get; set; }
+		private readonly ILogger<ImageComparisonService> _logger;
+		private readonly float _threshold;
+		private readonly IPathService _pathService;
 
-		public ImageComparisonService(ILogger<ImageComparisonService> logger, IConfiguration config, IPathService pathService)
+		public ImageComparisonService(
+			ILogger<ImageComparisonService> logger,
+			IConfiguration config,
+			IPathService pathService)
 		{
-			Logger = logger;
-			Threshold = config.GetValue<float>("SimilarityThreshold", 0.85f);
-			PathService = pathService;
+			_logger = logger;
+			_threshold = config.GetValue<float>("SimilarityThreshold", 0.85f);
+			_pathService = pathService;
 		}
 
 		public IEnumerable<ComparisonResult> CompareImages(string groupA, string groupB, string instanceId)
 		{
-			Logger.LogInformation("Comparando imagens usando SSIM com threshold {Threshold}", Threshold);
+			_logger.LogInformation("Comparing images using SSIM with threshold {Threshold}", _threshold);
 
-			string pathA = PathService.GetGroupPath(groupA, instanceId);
-			string pathB = PathService.GetGroupPath(groupB, instanceId);
+			var pathA = _pathService.GetGroupPath(groupA, instanceId);
+			var pathB = _pathService.GetGroupPath(groupB, instanceId);
 
 			if (!Directory.Exists(pathA) || !Directory.Exists(pathB))
 			{
-				Logger.LogWarning("Um dos grupos de imagem nao foi encontrado.");
+				_logger.LogWarning("One or both image groups not found.");
 				return Enumerable.Empty<ComparisonResult>();
 			}
 
 			var groupAFiles = Directory.GetFiles(pathA);
 			var groupBFiles = Directory.GetFiles(pathB);
 
-			var results = new List<ComparisonResult>();
+			if (groupAFiles.Length == 0 || groupBFiles.Length == 0)
+			{
+				_logger.LogWarning("One or both image groups are empty.");
+				return Enumerable.Empty<ComparisonResult>();
+			}
+
+			var results = new ConcurrentBag<ComparisonResult>();
 
 			Parallel.ForEach(groupAFiles, fileA =>
 			{
-				using var imageA = Image.Load<Rgba32>(fileA);
+				using var imageA = LoadAndPreprocessImage(fileA, out int width, out int height);
+
 				foreach (var fileB in groupBFiles)
 				{
-					using var imageB = Image.Load<Rgba32>(fileB);
-					float ssim = ComputeSSIM(imageA, imageB);
-					if (ssim >= Threshold)
+					using var imageB = LoadAndPreprocessImage(fileB, width, height);
+					float ssim = ComputeSSIM(imageA, imageB, width, height);
+
+					if (ssim >= _threshold)
 					{
-						lock (results)
+						results.Add(new ComparisonResult
 						{
-							results.Add(new ComparisonResult
-							{
-								A = Path.GetFileName(fileA),
-								B = Path.GetFileName(fileB),
-								Similarity = ssim
-							});
-						}
+							A = Path.GetFileName(fileA),
+							B = Path.GetFileName(fileB),
+							Similarity = ssim
+						});
 					}
 				}
 			});
 
-			Logger.LogInformation("{Count} correspondencias encontradas", results.Count);
+			_logger.LogInformation("{Count} matches found", results.Count);
 			return results;
 		}
 
-		private static float ComputeSSIM(Image<Rgba32> imgA, Image<Rgba32> imgB)
+		private static Image<Rgba32> LoadAndPreprocessImage(string filePath, out int width, out int height)
 		{
-			int width = Math.Min(imgA.Width, imgB.Width);
-			int height = Math.Min(imgA.Height, imgB.Height);
+			var image = Image.Load<Rgba32>(filePath);
+			width = image.Width;
+			height = image.Height;
+			image.Mutate(x => x.Grayscale());
+			return image;
+		}
 
-			imgA.Mutate(x => x.Resize(width, height).Grayscale());
-			imgB.Mutate(x => x.Resize(width, height).Grayscale());
+		private static Image<Rgba32> LoadAndPreprocessImage(string filePath, int width, int height)
+		{
+			var image = Image.Load<Rgba32>(filePath);
+			image.Mutate(x => x.Resize(width, height).Grayscale());
+			return image;
+		}
 
+		private static float ComputeSSIM(Image<Rgba32> imgA, Image<Rgba32> imgB, int width, int height)
+		{
 			float meanA = 0, meanB = 0, varA = 0, varB = 0, cov = 0;
 			int count = width * height;
 
+			// Calculate means
 			for (int y = 0; y < height; y++)
-			{
-				
-				
 				for (int x = 0; x < width; x++)
 				{
 					float a = imgA[x, y].R / 255f;
@@ -85,15 +101,11 @@ namespace ImageOverlapApp.Services
 					meanA += a;
 					meanB += b;
 				}
-			}
-
 			meanA /= count;
 			meanB /= count;
 
+			// Calculate variances and covariance
 			for (int y = 0; y < height; y++)
-			{
-				
-				
 				for (int x = 0; x < width; x++)
 				{
 					float a = imgA[x, y].R / 255f - meanA;
@@ -102,8 +114,6 @@ namespace ImageOverlapApp.Services
 					varB += b * b;
 					cov += a * b;
 				}
-			}
-
 			varA /= count;
 			varB /= count;
 			cov /= count;
@@ -111,7 +121,7 @@ namespace ImageOverlapApp.Services
 			const float c1 = 0.01f * 0.01f;
 			const float c2 = 0.03f * 0.03f;
 			return (2 * meanA * meanB + c1) * (2 * cov + c2) /
-				((meanA * meanA + meanB * meanB + c1) * (varA + varB + c2));
+				   ((meanA * meanA + meanB * meanB + c1) * (varA + varB + c2));
 		}
 	}
 }
